@@ -1,20 +1,38 @@
 # NorthwindApi
 
-[![Pipeline](https://gitlab.com/NAMESPACE/PROJECT/badges/main/pipeline.svg)](https://gitlab.com/NAMESPACE/PROJECT/-/pipelines)
-[![Cobertura](https://gitlab.com/NAMESPACE/PROJECT/badges/main/coverage.svg)](https://gitlab.com/NAMESPACE/PROJECT/-/pipelines)
-
-> Sustituya `NAMESPACE/PROJECT` por la ruta real del proyecto en GitLab para que los
-> badges de pipeline y cobertura apunten al repositorio correcto.
-
 API REST sobre la base de datos **Northwind** (SQL Server), construida con **ASP.NET Core (.NET 10)**
-y **Entity Framework Core (database-first)**. Expone:
+y **Entity Framework Core (database-first)**.
 
-- **CRUD** de las entidades de Northwind (Categories, Customers, Employees, Products, Orders, …).
-- **Solo lectura** de las **16 vistas** de la base de datos.
-- Invocación **explícita y parametrizada** de los **7 procedimientos almacenados**.
-- **Dashboard** con métricas de ventas (JSON) y una **página web** de panel.
-- **Exportación de reportes a PDF y XLSX**.
-- **Swagger UI**, comprobación de **salud** y manejo de errores con **ProblemDetails**.
+## Elementos desarrollados
+
+La solución implementa un backend completo para consultar y gestionar el catálogo de Northwind,
+con foco en una API REST robusta, segura y lista para despliegue:
+
+- **CRUD** genérico para las entidades principales de Northwind (`Categories`, `Customers`,
+  `Employees`, `Products`, `Orders`, `Suppliers`, `Regions`, etc.).
+- **Consultas de solo lectura** sobre las **16 vistas** de la base de datos.
+- **Invocación explícita y parametrizada** de los **7 procedimientos almacenados**.
+- **Dashboard y métricas de negocio** en JSON con vista web para seguimiento de ventas,
+  productos y clientes.
+- **Exportación de reportes** a **PDF** y **XLSX** para ventas, clientes y facturas.
+- **Endpoints REST documentados con Swagger**, salud del sistema y respuestas
+  `ProblemDetails` para errores de validación y negocio.
+- **Capas bien separadas** (`Api`, `Application`, `Infrastructure`) con servicios,
+  DTOs, validación y reutilización en CRUD y reportes.
+- **Integración con Docker Compose** para desarrollo y despliegue con SQL Server 2022.
+- **Pipeline de CI/CD** para build, pruebas, empaquetado y despliegue automatizado.
+
+### Cobertura funcional actual
+
+La API incluye los siguientes grupos funcionales:
+
+- CRUD de recursos transaccionales y maestros.
+- Paginación con `page`, `pageSize`, `sort` y `order` en colecciones.
+- Vistas `GET /api/views/*` para lectura analítica.
+- Procedimientos almacenados `GET /api/stored-procedures/*` con parámetros.
+- Dashboard `GET /api/dashboard` con métricas resumidas y filtros por fechas.
+- Reportes `GET /api/reports/*` para exportación directa.
+- Seguridad de consultas mediante `FormattableString` y validación de orden.
 
 ---
 
@@ -333,21 +351,27 @@ GET /api/reports/invoices.pdf?customerId=ALFKI
 
 ---
 
-## Pruebas
+## Pruebas y validación
 
 ```powershell
 dotnet test
 ```
 
-- **Unitarias**: `PageQuery`, ordenamiento por lista blanca, servicios CRUD con EF Core **InMemory**.
-- **Integración**: `WebApplicationFactory` contra la base de datos Northwind real (endpoints de lectura,
-  procedimientos, exportaciones y mapeo de errores 400/404/409).
+La suite actual queda dividida en dos grupos:
 
-Las pruebas de integración usan la cadena de conexión `NORTHWIND_TEST_CONNECTION` si está definida;
-si no, LocalDB `(localdb)\MSSQLLocalDB` con la base `Northwind`.
+- **Pruebas unitarias**: validan la lógica de paginación (`PageQuery`), el ordenamiento seguro y
+  los servicios CRUD con EF Core **InMemory**.
+- **Pruebas de integración**: usan `WebApplicationFactory` para ejecutar la API en memoria y validar
+  endpoints reales de lectura, procedimientos almacenados, exportación de reportes y manejo de errores
+  HTTP (`400`, `404`, `409`).
 
-En GitLab CI, el job `test` levanta **SQL Server 2022** como *service* y define
-`NORTHWIND_TEST_CONNECTION` apuntando a ese contenedor; no se usa LocalDB.
+La configuración del entorno de pruebas soporta:
+
+- `NORTHWIND_TEST_CONNECTION` si está definida para una base real o de contenedor.
+- LocalDB `(localdb)\MSSQLLocalDB` como fallback para entorno local.
+- SQL Server 2022 en GitLab CI para la ejecución automatizada de la pipeline de pruebas.
+
+Resultado verificado en esta entrega: **39 pruebas ejecutadas, 39 superadas, 0 fallidas**.
 
 ---
 
